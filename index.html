@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#b33c00">
-    <meta name="apple-mobile-web-app-title" content="Rama Japa">
     
     <title>Rama Japa</title>
     
@@ -19,16 +18,12 @@
             font-family: 'Nirmala UI', 'Mangal', 'Arial Unicode MS', sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
             color: #5c2808;
-            overflow: hidden; /* Prevent body scroll, handle in container */
-            -webkit-user-select: none; /* Disable text selection for app-like feel */
-            user-select: none;
+            /* CHANGED: Removed height:100vh and overflow:hidden to allow natural scrolling */
+            min-height: 100vh;
         }
 
-        /* HEADER */
+        /* HEADER (Fixed at top) */
         header {
             background-color: #b33c00;
             color: white;
@@ -39,74 +34,78 @@
             justify-content: center;
             position: fixed;
             top: 0;
-            width: 100%;
-            height: 100px; /* Fixed height for desktop */
+            left: 0;
+            right: 0;
+            height: auto;
             z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: height 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
         .counter { 
             font-weight: bold; 
-            font-size: 1.5rem; 
+            font-size: 1.4rem; 
             color: white;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
         .header-buttons {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
+            width: 100%;
         }
 
         /* BUTTON STYLES */
         button {
-            touch-action: manipulation; /* Removes 300ms tap delay on phones */
-            -webkit-tap-highlight-color: transparent; /* Removes blue highlight on tap */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .type-btn {
             background-color: white;
             color: #b33c00;
             border: none;
-            font-size: 1.5rem; 
+            font-size: 1.4rem; 
             font-weight: bold;
-            padding: 10px 25px;
+            padding: 10px 0; /* Vertical padding */
+            width: 60px;     /* Fixed width */
             border-radius: 8px;
             cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
-            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
         }
 
         .type-btn:active {
-            transform: translateY(4px);
+            transform: translateY(3px);
             box-shadow: none;
             background-color: #f0f0f0;
         }
 
         .space-btn {
-            width: 120px;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: auto;
+            flex-grow: 1; /* Fills remaining space */
+            max-width: 120px;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         /* TYPING AREA */
         #japa-container {
-            flex: 1;
-            padding: 120px 20px 80px 20px; /* Top padding clears header */
-            overflow-y: auto;
-            font-size: 32px; /* Large text */
+            display: block;
+            /* Top padding pushes text below the fixed header */
+            padding-top: 140px; 
+            padding-left: 20px;
+            padding-right: 20px;
+            /* Bottom padding ensures the last line is never hidden behind keyboard */
+            padding-bottom: 50vh; 
+            
+            font-size: 28px; 
             line-height: 1.6;
             white-space: pre-wrap;
             outline: none;
             cursor: text;
-            -webkit-overflow-scrolling: touch; 
-            user-select: text; /* Allow user to select text here if needed */
         }
 
         /* Blinking Cursor Effect */
@@ -114,7 +113,7 @@
             content: "❘";
             animation: blink 1s infinite;
             color: #b33c00;
-            margin-left: 2px;
+            font-weight: bold;
         }
 
         @keyframes blink {
@@ -133,57 +132,19 @@
         }
         
         .control-btn {
-            padding: 10px 16px;
+            padding: 8px 14px;
             cursor: pointer;
             background: #fff;
             border: 1px solid #ccc;
-            border-radius: 20px; /* Pill shape */
+            border-radius: 20px;
             color: #555;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0.8;
         }
         .control-btn:active { transform: scale(0.95); }
 
-        /* --- MOBILE RESPONSIVE TWEAKS --- */
-        @media (max-width: 600px) {
-            header {
-                height: auto; 
-                padding: 10px 5px 15px 5px;
-            }
-
-            .counter {
-                font-size: 1.2rem;
-                margin-bottom: 8px;
-            }
-
-            .header-buttons {
-                gap: 8px;
-                width: 100%;
-                justify-content: space-evenly;
-            }
-
-            .type-btn {
-                font-size: 1.4rem;
-                padding: 12px 0; /* Vertical padding */
-                width: 60px;     /* Fixed width for uniformity */
-                border-radius: 10px;
-            }
-            
-            .space-btn {
-                width: auto;
-                flex-grow: 1; /* Space bar fills remaining space */
-                max-width: 100px;
-                font-size: 0.8rem;
-            }
-
-            #japa-container {
-                padding-top: 140px; 
-                padding-left: 15px;
-                padding-right: 15px;
-                font-size: 24px; 
-            }
-        }
     </style>
 </head>
 <body>
@@ -227,43 +188,36 @@
     };
 
     // --- UNIFIED TAP HANDLER ---
-    // Handles both Touch and Mouse clicks to insert text
     function handleTap(char, event) {
         if(event) {
-            event.preventDefault(); // Prevents double-firing and prevents Keyboard popup
+            event.preventDefault(); // Stop double firing
         }
         insertChar(char);
     }
 
     function insertChar(char) {
         container.innerText += char;
-        scrollToBottom();
         updateCount();
         saveProgress();
-        // NOTE: We deliberately do NOT call container.focus() here 
-        // to keep the on-screen keyboard hidden on mobile devices.
+        scrollToBottom();
     }
 
     // --- PHYSICAL KEYBOARD SUPPORT ---
     document.addEventListener('keydown', function(event) {
-        // Backspace
         if (event.key === 'Backspace') {
             setTimeout(() => { updateCount(); saveProgress(); }, 10);
             return;
         }
-        // Spacebar
         if (event.key === ' ') {
             event.preventDefault(); 
             insertChar(' '); 
             return;
         }
-        // Custom Keys
         if (keyMap[event.key]) {
             event.preventDefault(); 
             insertChar(keyMap[event.key]);
             return;
         }
-        // Block other keys (optional, keeps it clean)
         if (!event.ctrlKey && !event.altKey && !event.metaKey && event.key.length === 1) {
             event.preventDefault();
         }
@@ -271,7 +225,7 @@
 
     function updateCount() {
         const text = container.innerText;
-        const matches = text.match(/राम /g); // Counts "Ram "
+        const matches = text.match(/राम /g);
         const count = matches ? matches.length : 0;
         countDisplay.innerText = count;
     }
@@ -280,9 +234,15 @@
         localStorage.setItem('customRamaText', container.innerText);
     }
 
+    // CHANGED: Scrolls the entire window now, which is much more reliable on mobile
     function scrollToBottom() {
-        window.scrollTo(0, document.body.scrollHeight);
-        container.scrollTop = container.scrollHeight;
+        // We use a small timeout to ensure the DOM has updated the text height
+        setTimeout(() => {
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 10);
     }
 
     function clearJapa() {
