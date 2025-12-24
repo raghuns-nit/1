@@ -12,30 +12,34 @@
     <title>Rama Japa</title>
     
     <style>
-        /* --- BASE STYLES --- */
+        /* --- 1. LOCK THE PAGE LAYOUT --- */
+        * { box-sizing: border-box; }
+        
         body {
             background-color: #fdf6e3;
             font-family: 'Nirmala UI', 'Mangal', 'Arial Unicode MS', sans-serif;
             margin: 0;
             padding: 0;
-            color: #2a1202; /* Very dark brown/black for high contrast */
-            min-height: 100vh;
+            color: #2a1202;
+            
+            /* CRITICAL: This locks the app to the screen size */
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* No full-page scrolling */
         }
 
-        /* HEADER */
+        /* --- 2. HEADER (Fixed Size) --- */
         header {
             background-color: #b33c00;
             color: white;
             padding: 10px;
+            flex-shrink: 0; /* Header never shrinks */
             display: flex;
             flex-direction: column; 
             align-items: center;
             justify-content: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            z-index: 10;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
@@ -53,7 +57,7 @@
             width: 100%;
         }
 
-        /* BUTTON STYLES */
+        /* --- 3. BUTTONS --- */
         button {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
@@ -87,25 +91,27 @@
             font-size: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* TYPING AREA */
+        /* --- 4. SCROLLABLE TYPING AREA --- */
         #japa-container {
-            display: block;
-            /* Top padding ensures text starts below header */
-            padding-top: 130px; 
-            padding-left: 20px;
-            padding-right: 20px;
-            /* Bottom padding ensures we can scroll the text up to the middle */
-            padding-bottom: 50vh; 
+            /* This makes it fill the remaining space */
+            flex: 1; 
+            
+            /* This enables scrolling ONLY inside this box */
+            overflow-y: auto; 
+            
+            padding: 20px;
+            /* Add bottom padding so text doesn't hide behind the Reset buttons */
+            padding-bottom: 80px; 
             
             font-size: 30px; 
-            line-height: 1.6;
+            line-height: 1.5;
             white-space: pre-wrap;
             outline: none;
+            
+            /* Smooth scrolling for touch, but we override it in JS for snapping */
+            -webkit-overflow-scrolling: touch; 
         }
 
         /* Blinking Cursor */
@@ -122,12 +128,12 @@
             50% { opacity: 0; }
         }
         
-        /* CONTROLS */
+        /* CONTROLS (Floating Bottom Right) */
         .controls {
-            position: fixed;
+            position: absolute;
             bottom: 20px;
             right: 20px;
-            z-index: 1001;
+            z-index: 20;
             display: flex;
             gap: 10px;
         }
@@ -176,20 +182,19 @@
         'm': 'म', 'M': 'म'
     };
 
-    // 1. LOAD SAVED DATA
     window.onload = function() {
         const savedText = localStorage.getItem('customRamaText');
         if (savedText) {
             container.innerText = savedText;
             updateCount(); 
         }
-        // Small delay to ensure layout is ready before scrolling
-        setTimeout(scrollToFocus, 100);
+        // Force scroll to bottom on load
+        snapToBottom();
     };
 
-    // 2. UNIFIED TAP HANDLER
+    // --- INPUT HANDLING ---
     function handleTap(char, event) {
-        if(event) event.preventDefault(); // Stop default browser zoom/scroll interactions
+        if(event) event.preventDefault(); 
         insertChar(char);
     }
 
@@ -197,13 +202,15 @@
         container.innerText += char;
         updateCount();
         saveProgress();
-        scrollToFocus();
+        
+        // Immediate Snap to Bottom
+        snapToBottom();
     }
 
-    // 3. KEYBOARD SUPPORT
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Backspace') {
-            setTimeout(() => { updateCount(); saveProgress(); scrollToFocus(); }, 10);
+            // Delay slightly to allow text to delete before scrolling
+            setTimeout(() => { updateCount(); saveProgress(); snapToBottom(); }, 10);
             return;
         }
         if (event.key === ' ') {
@@ -218,7 +225,7 @@
         }
     });
 
-    // 4. LOGIC
+    // --- LOGIC ---
     function updateCount() {
         const text = container.innerText;
         const matches = text.match(/राम /g);
@@ -230,23 +237,11 @@
         localStorage.setItem('customRamaText', container.innerText);
     }
 
-    // --- IMPROVED SCROLLING ---
-    // This calculates where the text ends and centers it in the window
-    function scrollToFocus() {
-        window.requestAnimationFrame(() => {
-            // Get the full height of the page content
-            const totalHeight = document.body.scrollHeight;
-            
-            // Get the height of the viewport (screen)
-            const screenHeight = window.innerHeight;
-            
-            // Scroll to the bottom, but pull back slightly so the text is centered
-            // instead of stuck at the very bottom edge.
-            // We assume the padding-bottom (50vh) is there.
-            window.scrollTo({
-                top: totalHeight - screenHeight + (screenHeight * 0.4), 
-                behavior: 'smooth'
-            });
+    // --- NEW SCROLL LOGIC ---
+    function snapToBottom() {
+        // requestAnimationFrame ensures the paint is finished before we scroll
+        requestAnimationFrame(() => {
+            container.scrollTop = container.scrollHeight;
         });
     }
 
@@ -255,7 +250,7 @@
             container.innerText = "";
             countDisplay.innerText = "0";
             saveProgress();
-            window.scrollTo(0,0);
+            container.scrollTop = 0;
         }
     }
     
