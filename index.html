@@ -12,7 +12,6 @@
     <title>Rama Japa</title>
     
     <style>
-        /* --- 1. LOCK THE PAGE LAYOUT --- */
         * { box-sizing: border-box; }
         
         body {
@@ -22,19 +21,20 @@
             padding: 0;
             color: #2a1202;
             
-            /* CRITICAL: This locks the app to the screen size */
-            height: 100vh; 
+            /* CRITICAL FIX: Use 100dvh (Dynamic Viewport Height) */
+            /* This ensures the app fits perfectly even if address bars are visible */
+            height: 100dvh; 
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* No full-page scrolling */
+            overflow: hidden; 
         }
 
-        /* --- 2. HEADER (Fixed Size) --- */
+        /* HEADER */
         header {
             background-color: #b33c00;
             color: white;
             padding: 10px;
-            flex-shrink: 0; /* Header never shrinks */
+            flex-shrink: 0; 
             display: flex;
             flex-direction: column; 
             align-items: center;
@@ -57,7 +57,7 @@
             width: 100%;
         }
 
-        /* --- 3. BUTTONS --- */
+        /* BUTTONS */
         button {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
@@ -91,36 +91,31 @@
             font-size: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* --- 4. SCROLLABLE TYPING AREA --- */
+        /* TYPING AREA */
         #japa-container {
-            /* This makes it fill the remaining space */
             flex: 1; 
-            
-            /* This enables scrolling ONLY inside this box */
             overflow-y: auto; 
-            
             padding: 20px;
-            /* Add bottom padding so text doesn't hide behind the Reset buttons */
-            padding-bottom: 80px; 
+            /* Massive bottom padding to allow scrolling the text up high */
+            padding-bottom: 50vh; 
             
             font-size: 30px; 
             line-height: 1.5;
             white-space: pre-wrap;
             outline: none;
-            
-            /* Smooth scrolling for touch, but we override it in JS for snapping */
-            -webkit-overflow-scrolling: touch; 
         }
 
-        /* Blinking Cursor */
-        #japa-container::after {
-            content: "❘";
-            animation: blink 1s infinite;
+        /* THE REAL HTML CURSOR STYLE */
+        #cursor {
             color: #b33c00;
             font-weight: 900;
-            margin-left: 2px;
+            animation: blink 1s infinite;
+            display: inline-block;
         }
 
         @keyframes blink {
@@ -128,7 +123,7 @@
             50% { opacity: 0; }
         }
         
-        /* CONTROLS (Floating Bottom Right) */
+        /* CONTROLS */
         .controls {
             position: absolute;
             bottom: 20px;
@@ -165,7 +160,7 @@
     </div>
 </header>
 
-<div id="japa-container"></div>
+<div id="japa-container"><span id="text-content"></span><span id="cursor">|</span></div>
 
 <div class="controls">
     <button class="control-btn" onclick="clearJapa()">Reset</button>
@@ -173,7 +168,8 @@
 </div>
 
 <script>
-    const container = document.getElementById('japa-container');
+    const textContent = document.getElementById('text-content');
+    const cursor = document.getElementById('cursor');
     const countDisplay = document.getElementById('count');
     
     const keyMap = {
@@ -185,32 +181,36 @@
     window.onload = function() {
         const savedText = localStorage.getItem('customRamaText');
         if (savedText) {
-            container.innerText = savedText;
+            textContent.innerText = savedText;
             updateCount(); 
         }
-        // Force scroll to bottom on load
-        snapToBottom();
+        scrollToCursor();
     };
 
-    // --- INPUT HANDLING ---
     function handleTap(char, event) {
         if(event) event.preventDefault(); 
         insertChar(char);
     }
 
     function insertChar(char) {
-        container.innerText += char;
+        // Add text to the SPAN, not the container
+        textContent.innerText += char;
+        
         updateCount();
         saveProgress();
-        
-        // Immediate Snap to Bottom
-        snapToBottom();
+        scrollToCursor();
     }
 
+    // Keyboard support
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Backspace') {
-            // Delay slightly to allow text to delete before scrolling
-            setTimeout(() => { updateCount(); saveProgress(); snapToBottom(); }, 10);
+            // Remove last character from textContent
+            let currentStr = textContent.innerText;
+            textContent.innerText = currentStr.substring(0, currentStr.length - 1);
+            
+            updateCount(); 
+            saveProgress(); 
+            scrollToCursor();
             return;
         }
         if (event.key === ' ') {
@@ -225,38 +225,36 @@
         }
     });
 
-    // --- LOGIC ---
     function updateCount() {
-        const text = container.innerText;
+        const text = textContent.innerText;
         const matches = text.match(/राम /g);
         const count = matches ? matches.length : 0;
         countDisplay.innerText = count;
     }
 
     function saveProgress() {
-        localStorage.setItem('customRamaText', container.innerText);
+        localStorage.setItem('customRamaText', textContent.innerText);
     }
 
-    // --- NEW SCROLL LOGIC ---
-    function snapToBottom() {
-        // requestAnimationFrame ensures the paint is finished before we scroll
-        requestAnimationFrame(() => {
-            container.scrollTop = container.scrollHeight;
-        });
+    // --- THE MAGIC FIX ---
+    function scrollToCursor() {
+        // This forces the blinking cursor element to position itself 
+        // in the CENTER of the visible area.
+        cursor.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     function clearJapa() {
         if(confirm("Start over?")) {
-            container.innerText = "";
+            textContent.innerText = "";
             countDisplay.innerText = "0";
             saveProgress();
-            container.scrollTop = 0;
+            scrollToCursor();
         }
     }
     
     function downloadText() {
         const element = document.createElement('a');
-        const file = new Blob([container.innerText], {type: 'text/plain'});
+        const file = new Blob([textContent.innerText], {type: 'text/plain'});
         element.href = URL.createObjectURL(file);
         element.download = "My_Likhita_Japa.txt";
         document.body.appendChild(element);
